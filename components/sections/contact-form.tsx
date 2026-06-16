@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useLanguage } from '@/contexts/language-context';
 import { motion } from 'framer-motion';
 import { Mail, MessageSquare, MapPin, Phone, Linkedin, Github } from 'lucide-react';
@@ -16,7 +16,7 @@ export function ContactForm() {
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -25,17 +25,38 @@ export function ContactForm() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     setIsLoading(true);
 
-    // Simulate form submission
-    setTimeout(() => {
-      console.log('Form submitted:', formData);
-      setFormData({ name: '', email: '', subject: '', message: '' });
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert('Message sent successfully!');
+
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: '',
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Failed to send message');
+    } finally {
       setIsLoading(false);
-      // In a real app, you would show a success message here
-    }, 1000);
+    }
   };
 
   const containerVariants = {
