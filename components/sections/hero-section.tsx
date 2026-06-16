@@ -6,9 +6,9 @@ import { useLanguage } from '@/contexts/language-context';
 import { useTheme } from 'next-themes';
 
 import {
-  GithubIcon,
-  LinkedinIcon,
-  InstagramIcon,
+  Github as GithubIcon,
+  Linkedin as LinkedinIcon,
+  Instagram as InstagramIcon,
   Mail,
   Download,
   ArrowRight,
@@ -19,17 +19,14 @@ import {
   Server,
   Globe,
   Shield,
-  Binary,
 } from 'lucide-react';
 
 import { motion } from 'framer-motion';
 
-import Particles from 'react-tsparticles';
-import type { Engine, ISourceOptions } from 'tsparticles-engine';
-import { loadSlim } from 'tsparticles-slim';
+import Particles from '@tsparticles/react';
+import { loadSlim } from '@tsparticles/slim';
 
 const SOCIAL_LINKS = [
-  
   { icon: GithubIcon, href: '#', label: 'GitHub' },
   { icon: LinkedinIcon, href: '#', label: 'LinkedIn' },
   { icon: InstagramIcon, href: '#', label: 'Instagram' },
@@ -450,7 +447,7 @@ export function HeroSection() {
     return () => clearTimeout(typingDelay);
   }, [charIndex, roleIndex, roles]);
 
-  const particlesInit = useCallback(async (engine: Engine) => {
+  const particlesInit = useCallback(async (engine: any) => {
     await loadSlim(engine);
   }, []);
 
@@ -468,7 +465,7 @@ export function HeroSection() {
     ? 0.35
     : 0.55;
 
-  const particlesOptions: ISourceOptions = useMemo(
+  const particlesOptions = useMemo(
     () => ({
       fullScreen: {
         enable: false,
@@ -534,11 +531,11 @@ export function HeroSection() {
         move: {
           enable: true,
           speed: 0.5,
-          direction: 'none',
+          direction: 'none' as const,
           random: false,
           straight: false,
           outModes: {
-            default: 'out',
+            default: 'out' as const,
           },
         },
       },
@@ -618,12 +615,18 @@ export function HeroSection() {
         <div className="absolute bottom-[-10%] right-[-10%] h-[400px] w-[400px] rounded-full bg-black/[0.04] dark:bg-white/[0.05] blur-3xl" />
 
         {/* Particles */}
-        <Particles
-          id="hero-particles"
-          init={particlesInit}
-          options={particlesOptions}
-          className="absolute inset-0"
-        />
+        {/* Particles types may not include the `init` prop in some versions — cast to any to avoid type issues */}
+        {(() => {
+          const ParticlesAny = Particles as unknown as any;
+          return (
+            <ParticlesAny
+              id="hero-particles"
+              init={particlesInit}
+              options={particlesOptions}
+              className="absolute inset-0"
+            />
+          );
+        })()}
       </div>
 
       {/* Content */}
