@@ -1,0 +1,153 @@
+{
+  "nav": {
+    "home": "Beranda",
+    "about": "Tentang",
+    "skills": "Keahlian",
+    "experience": "Pengalaman",
+    "projects": "Proyek",
+    "certificates": "Sertifikat",
+    "blog": "Blog",
+    "contact": "Kontak"
+  },
+
+  "home": {
+    "title": "Halo, Saya",
+    "subtitle": "Mahasiswa Sistem Informasi",
+
+    "roles": [
+      "Full Stack Developer",
+      "Desainer UI/UX",
+      "Creative Thinker",
+      "Penggemar Teknologi"
+    ],
+
+    "description": "Bersemangat dalam membangun pengalaman digital modern dengan desain yang bersih, sistem yang scalable, dan interaksi pengguna yang nyaman.",
+
+    "cta": {
+      "downloadCV": "Unduh CV",
+      "contactMe": "Hubungi Saya",
+      "viewProjects": "Lihat Proyek"
+    },
+
+    "social": {
+      "github": "GitHub",
+      "linkedin": "LinkedIn",
+      "instagram": "Instagram",
+      "email": "Email",
+      "whatsapp": "WhatsApp"
+    }
+  },
+
+  "about": {
+    "label": "Tentang Saya",
+
+    "title": "Developer Kreatif & Pemecah Masalah",
+
+    "intro": "Saya memiliki ketertarikan besar dalam membangun pengalaman digital modern dengan desain yang clean, interaksi yang smooth, dan sistem yang scalable. Saya menikmati proses menggabungkan kreativitas dengan logika untuk menciptakan produk yang estetis sekaligus fungsional.",
+
+    "academicBg": "Latar Belakang",
+
+    "academicBgDesc": "Berfokus pada pengembangan web, eksplorasi UI/UX, dan teknologi modern. Memiliki pengalaman dalam membangun antarmuka responsif, sistem backend, dan produk digital interaktif dengan perhatian tinggi terhadap detail dan pengalaman pengguna.",
+
+    "careerGoals": "Fokus Saat Ini",
+
+    "careerGoalsDesc": "Mengembangkan kemampuan full-stack development sambil mengeksplorasi pengalaman frontend modern, scalable architecture, dan inovasi digital kreatif.",
+
+    "softSkillsTitle": "Soft Skills",
+
+    "softSkills": [
+      "Problem Solving",
+      "Communication",
+      "Leadership",
+      "Adaptability",
+      "Team Collaboration",
+      "Creative Thinking",
+      "Critical Thinking",
+      "Time Management"
+    ],
+
+    "specialization": "Spesialisasi",
+
+    "interests": [
+      "Frontend Development",
+      "Backend Systems",
+      "UI/UX Design",
+      "Motion Design",
+      "Full Stack Development",
+      "Web Animation",
+      "Digital Branding",
+      "Creative Technology"
+    ],
+
+    "quote": "Desain bukan hanya soal tampilan tetapi tentang menciptakan pengalaman yang dapat diingat oleh orang lain."
+  },
+
+  "skills": {
+    "title": "Keahlian & Expertise",
+    "frontend": "Pengembangan Frontend",
+    "backend": "Pengembangan Backend",
+    "database": "Manajemen Database",
+    "design": "Desain & UX",
+    "tools": "Tools & Platform",
+    "other": "Kompetensi Lainnya"
+  },
+
+  "experience": {
+    "title": "Pengalaman & Perjalanan",
+    "noExperience": "Belum ada pengalaman"
+  },
+
+  "projects": {
+    "title": "Proyek & Portfolio",
+    "viewDemo": "Lihat Demo",
+    "viewCode": "Lihat Kode",
+    "featured": "Unggulan",
+    "completed": "Selesai",
+    "inProgress": "Sedang Dikerjakan"
+  },
+
+  "certificates": {
+    "title": "Sertifikat & Prestasi",
+    "noData": "Belum ada sertifikat"
+  },
+
+  "blog": {
+    "title": "Blog & Wawasan",
+    "readMore": "Baca Selengkapnya",
+    "readingTime": "menit dibaca"
+  },
+
+  "contact": {
+    "title": "Hubungi Saya",
+
+    "description": "Ada pertanyaan atau ingin berkolaborasi? Jangan ragu untuk menghubungi saya!",
+
+    "form": {
+      "name": "Nama Anda",
+      "email": "Email Anda",
+      "subject": "Subjek",
+      "message": "Pesan Anda",
+      "send": "Kirim Pesan",
+      "sending": "Mengirim...",
+      "success": "Pesan berhasil dikirim!",
+      "error": "Gagal mengirim pesan. Silakan coba lagi."
+    },
+
+    "contactInfo": "Informasi Kontak",
+    "email": "Email",
+    "phone": "Telepon",
+    "location": "Lokasi"
+  },
+
+  "common": {
+    "backToTop": "Kembali ke Atas",
+    "madeWith": "Dibuat dengan",
+    "copyright": "Semua hak dilindungi",
+    "language": "Bahasa",
+    "english": "English",
+    "indonesian": "Bahasa Indonesia",
+    "theme": "Tema",
+    "light": "Terang",
+    "dark": "Gelap"
+  }
+}

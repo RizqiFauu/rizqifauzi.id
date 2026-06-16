@@ -1,0 +1,152 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "skills": "Skills",
+    "experience": "Experience",
+    "projects": "Projects",
+    "certificates": "Certificates",
+    "blog": "Blog",
+    "contact": "Contact"
+  },
+
+  "home": {
+    "title": "Hi, I'm",
+    "subtitle": "Information Systems Student",
+
+    "roles": [
+      "Full Stack Developer",
+      "UI/UX Designer",
+      "Creative Thinker",
+      "Tech Enthusiast"
+    ],
+
+    "description": "Passionate about building modern digital experiences with clean design, scalable systems, and smooth user interactions.",
+
+    "cta": {
+      "downloadCV": "Download CV",
+      "contactMe": "Contact Me",
+      "viewProjects": "View Projects"
+    },
+
+    "social": {
+      "github": "GitHub",
+      "linkedin": "LinkedIn",
+      "instagram": "Instagram",
+      "email": "Email",
+      "whatsapp": "WhatsApp"
+    }
+  },
+
+  "about": {
+    "label": "About Me",
+    "title": "Creative Developer & Problem Solver",
+
+    "intro": "I’m passionate about building modern digital experiences with clean design, smooth interactions, and scalable functionality. I enjoy combining creativity with logic to create products that feel both aesthetic and useful.",
+
+    "academicBg": "Background",
+
+    "academicBgDesc": "Focused on web development, UI/UX exploration, and modern technologies. Experienced in building responsive interfaces, backend systems, and interactive digital products with attention to detail and user experience.",
+
+    "careerGoals": "Current Focus",
+
+    "careerGoalsDesc": "Improving full-stack development skills while exploring advanced frontend experiences, scalable architecture, and creative digital innovation.",
+
+    "softSkillsTitle": "Soft Skills",
+
+    "softSkills": [
+      "Problem Solving",
+      "Communication",
+      "Leadership",
+      "Adaptability",
+      "Team Collaboration",
+      "Creative Thinking",
+      "Critical Thinking",
+      "Time Management"
+    ],
+
+    "specialization": "Specialization",
+
+    "interests": [
+      "Frontend Development",
+      "Backend Systems",
+      "UI/UX Design",
+      "Motion Design",
+      "Full Stack Development",
+      "Web Animation",
+      "Digital Branding",
+      "Creative Technology"
+    ],
+
+    "quote": "Design is not only about appearance it’s about creating experiences that people remember."
+  },
+
+  "skills": {
+    "title": "Skills & Expertise",
+    "frontend": "Frontend Development",
+    "backend": "Backend Development",
+    "database": "Database Management",
+    "design": "Design & UX",
+    "tools": "Tools & Platforms",
+    "other": "Other Competencies"
+  },
+
+  "experience": {
+    "title": "Experience & Journey",
+    "noExperience": "No experiences yet"
+  },
+
+  "projects": {
+    "title": "Projects & Portfolio",
+    "viewDemo": "View Demo",
+    "viewCode": "View Code",
+    "featured": "Featured",
+    "completed": "Completed",
+    "inProgress": "In Progress"
+  },
+
+  "certificates": {
+    "title": "Certificates & Achievements",
+    "noData": "No certificates yet"
+  },
+
+  "blog": {
+    "title": "Blog & Insights",
+    "readMore": "Read More",
+    "readingTime": "min read"
+  },
+
+  "contact": {
+    "title": "Get In Touch",
+
+    "description": "Have a question or want to collaborate? Feel free to reach out!",
+
+    "form": {
+      "name": "Your Name",
+      "email": "Your Email",
+      "subject": "Subject",
+      "message": "Your Message",
+      "send": "Send Message",
+      "sending": "Sending...",
+      "success": "Message sent successfully!",
+      "error": "Failed to send message. Please try again."
+    },
+
+    "contactInfo": "Contact Information",
+    "email": "Email",
+    "phone": "Phone",
+    "location": "Location"
+  },
+
+  "common": {
+    "backToTop": "Back to Top",
+    "madeWith": "Made with",
+    "copyright": "All rights reserved",
+    "language": "Language",
+    "english": "English",
+    "indonesian": "Indonesian",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark"
+  }
+}
