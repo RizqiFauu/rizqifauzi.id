@@ -243,7 +243,7 @@ export function ContactForm() {
             </h3>
             <div className="space-y-4">
               <a
-                href="mailto:rizqifauzi.id@gmail.com"
+                href="mailto:rizqifauzi.co@gmail.com"
                 className="flex items-center gap-4 p-4 rounded-lg bg-background hover:bg-background/80 transition-colors"
               >
                 <Mail className="w-6 h-6 text-primary" />

@@ -5,10 +5,10 @@ import { useLanguage } from '@/contexts/language-context';
 import { Github, Linkedin, Mail, Instagram, Heart } from 'lucide-react';
 
 const SOCIAL_LINKS = [
-  { icon: Github, href: '#', label: 'GitHub' },
-  { icon: Linkedin, href: '#', label: 'LinkedIn' },
-  { icon: Instagram, href: '#', label: 'Instagram' },
-  { icon: Mail, href: 'mailto:contact@example.com', label: 'Email' },
+  { icon: Github,    href: 'https://github.com/RizqiFauu',                        label: 'GitHub'    },
+  { icon: Linkedin,  href: 'https://www.linkedin.com/in/rizqi-fauzi-417575336',                        label: 'LinkedIn'  },
+  { icon: Instagram, href: 'https://www.instagram.com/rizqifauu',                        label: 'Instagram' },
+  { icon: Mail,      href: 'mailto:rizqifauzi.co@gmail.com', label: 'Email'  },
 ];
 
 const FOOTER_LINKS = [

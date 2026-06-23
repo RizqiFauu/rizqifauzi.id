@@ -613,10 +613,10 @@ function LoadingScreen({ onFinish }: { onFinish: () => void }) {
    SOCIAL LINKS
 ───────────────────────────────────────── */
 const SOCIAL_LINKS = [
-  { icon: GithubIcon,    href: '#',                        label: 'GitHub'    },
-  { icon: LinkedinIcon,  href: '#',                        label: 'LinkedIn'  },
-  { icon: InstagramIcon, href: '#',                        label: 'Instagram' },
-  { icon: Mail,          href: 'mailto:contact@example.com', label: 'Email'  },
+  { icon: GithubIcon,    href: 'https://github.com/RizqiFauu',                        label: 'GitHub'    },
+  { icon: LinkedinIcon,  href: 'https://www.linkedin.com/in/rizqi-fauzi-417575336',                        label: 'LinkedIn'  },
+  { icon: InstagramIcon, href: 'https://www.instagram.com/rizqifauu',                        label: 'Instagram' },
+  { icon: Mail,          href: 'mailto:rizqifauzi.co@gmail.com', label: 'Email'  },
 ];
 
 /* ─────────────────────────────────────────
