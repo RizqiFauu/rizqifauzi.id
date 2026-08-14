@@ -192,39 +192,25 @@ function MusicPlayer() {
 }
 
 /* ─────────────────────────────────────────
-   CLASSICAL CANVAS BACKGROUND
-   — transparent base, adapts to light/dark
+   MEDITATIVE (NEBULA) BACKGROUND
+   — transparent base, adapts to light/dark,
+     accent color follows your theme's primary
 ───────────────────────────────────────── */
-function ClassicalBackground({ isDark }: { isDark: boolean }) {
+function MeditativeBackground({ isDark }: { isDark: boolean }) {
   const bgRef = useRef<HTMLCanvasElement>(null);
   const fxRef = useRef<HTMLCanvasElement>(null);
   const tpRef = useRef<HTMLCanvasElement>(null);
   const state = useRef({
     W: 0, H: 0,
     mx: 0.5, my: 0.5, rmx: 0.5, rmy: 0.5,
-    pmx: 0.5, pmy: 0.5, mvx: 0, mvy: 0,
+    mvx: 0, mvy: 0,
     clickImpulse: 0, isDragging: false, dragEnergy: 0,
     clickRipples: [] as { x: number; y: number; t: number; strength: number }[],
-    wavePhase: 0,
     rafId: 0,
     smoothRafId: 0,
-    last: 0,
   });
-  // Keep isDark accessible inside the draw loop via ref
   const isDarkRef = useRef(isDark);
   useEffect(() => { isDarkRef.current = isDark; }, [isDark]);
-
-  function RNG(seed: number) {
-    let s = seed;
-    return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
-  }
-  const NOTES_PER_STAVE = 16;
-  const NOTE_DATA = Array.from({ length: 4 }, (_, si) =>
-    Array.from({ length: NOTES_PER_STAVE }, (_, ni) => {
-      const r = RNG(si * 100 + ni * 7);
-      return { pos: Math.floor(r() * 9) - 4, type: Math.floor(r() * 3), rest: r() > 0.82 };
-    })
-  );
 
   useEffect(() => {
     const bg = bgRef.current!;
@@ -251,15 +237,11 @@ function ClassicalBackground({ isDark }: { isDark: boolean }) {
     };
     const onUp = () => { S.isDragging = false; };
     const onMove = (x: number, y: number) => {
-      S.pmx = S.mx; S.pmy = S.my;
+      const pmx = S.mx, pmy = S.my;
       S.mx = x / S.W; S.my = y / S.H;
-      S.mvx = (S.mx - S.pmx) * 60; S.mvy = (S.my - S.pmy) * 60;
+      S.mvx = (S.mx - pmx) * 60; S.mvy = (S.my - pmy) * 60;
       if (S.isDragging) {
         S.dragEnergy = Math.min(S.dragEnergy + Math.sqrt(S.mvx ** 2 + S.mvy ** 2) * 0.04, 1.5);
-        if (Math.random() < 0.08) {
-          S.clickRipples.push({ x: S.mx, y: S.my, t: 0, strength: 0.4 + S.dragEnergy * 0.3 });
-          if (S.clickRipples.length > 8) S.clickRipples.shift();
-        }
       }
     };
     const md = (e: MouseEvent) => { const r = getRect(); onDown(e.clientX - r.left, e.clientY - r.top); };
@@ -286,194 +268,141 @@ function ClassicalBackground({ isDark }: { isDark: boolean }) {
     };
     smooth();
 
+    const STAR_COUNT = 150;
+    const stars = Array.from({ length: STAR_COUNT }, (_, i) => {
+      const rnd = (seed: number) => { const v = Math.sin(seed * 999) * 43758.5453; return v - Math.floor(v); };
+      return {
+        x: rnd(i * 12.9898),
+        y: rnd(i * 78.233) * 0.85,
+        r: 0.3 + rnd(i * 37.5) * 0.9,
+        phase: rnd(i * 4.31) * Math.PI * 2,
+      };
+    });
+
     function draw(ts: number) {
-      const { W, H, rmx, rmy, mvx, mvy, dragEnergy, clickImpulse, clickRipples } = S;
-      S.last = ts;
+      const { W, H, rmx, rmy, mvx, mvy, dragEnergy, clickRipples, clickImpulse } = S;
       const dark = isDarkRef.current;
 
-      // Gentle idle pulse
       const bs = 0.18 * (0.5 + 0.5 * Math.sin(ts * 0.00068));
 
       bgX.clearRect(0, 0, W, H);
       fxX.clearRect(0, 0, W, H);
       tpX.clearRect(0, 0, W, H);
 
-      // ── Theme-adaptive colors ──
-      // In dark mode: lines are white-ish, accent is blue-white glow
-      // In light mode: lines are dark, accent is dark ink
-      const lineColor   = dark ? '220,220,220' : '40,20,10';
-      const clefColor   = dark ? '200,200,200' : '60,25,10';
-      const barColor    = dark ? '180,180,180' : '55,18,8';
-      const noteColor   = dark ? '230,230,230' : '50,18,8';
-      const activeNote  = dark ? '150,180,255' : '140,10,30';  // blue highlight in dark, red in light
-      const waveInk     = dark ? '180,200,255' : '60,20,10';   // ink waves
-      const waveAccent  = dark ? '120,160,255' : '180,18,45';  // main red/blue wave
-      const accentA     = dark ? '100,140,255' : '230,100,130';
-      const accentB     = dark ? '80,120,240'  : '200,30,60';
-      const accentC     = dark ? '60,100,220'  : '180,18,45';
-      const accentD     = dark ? '140,170,255' : '240,130,160';
-      const mouseSpot   = dark ? '120,150,255' : '200,140,80';
-      const rippleCol   = dark ? '100,130,255' : '180,60,50';
+      // ── ONE ink color for everything: white in dark mode, black in light mode ──
+      const [ar, ag, ab] = dark ? [255, 255, 255] : [10, 10, 10];
+      // Multiplier bumps light-mode alpha up since black-on-white reads lighter than white-on-black
+      const k = dark ? 1 : 1.55;
 
-      // ── Subtle mouse glow (no parchment fill — transparent bg) ──
-      const ms = bgX.createRadialGradient(W * rmx, H * rmy, 0, W * rmx, H * rmy, W * (0.28 + dragEnergy * 0.06));
-      ms.addColorStop(0, `rgba(${mouseSpot},${0.06 + dragEnergy * 0.04})`);
-      ms.addColorStop(1, 'transparent');
-      bgX.fillStyle = ms; bgX.fillRect(0, 0, W, H);
+      // ── Central nebula glow ──
+      const aox = (rmx - 0.5) * W * 0.12 + mvx * W * 0.018;
+      const aoy = (rmy - 0.5) * H * 0.09 + mvy * H * 0.015;
+      const ng = bgX.createRadialGradient(W * 0.5 + aox, H * 0.46 + aoy, 0, W * 0.5 + aox, H * 0.46 + aoy, W * (0.9 + dragEnergy * 0.15));
+      ng.addColorStop(0, `rgba(${ar},${ag},${ab},${(0.09 + bs * 0.20 + dragEnergy * 0.05) * k})`);
+      ng.addColorStop(0.38, `rgba(${ar},${ag},${ab},${(0.05 + bs * 0.09) * k})`);
+      ng.addColorStop(0.72, `rgba(${ar},${ag},${ab},${(0.035 + bs * 0.045) * k})`);
+      ng.addColorStop(1, 'transparent');
+      bgX.fillStyle = ng; bgX.fillRect(0, 0, W, H);
 
-      // Click ripple glow
-      clickRipples.forEach(r => {
-        const g = bgX.createRadialGradient(r.x * W, r.y * H, 0, r.x * W, r.y * H, W * 0.15 * r.strength);
-        g.addColorStop(0, `rgba(${rippleCol},${r.strength * 0.05 * Math.exp(-r.t * 1.5)})`);
-        g.addColorStop(1, 'transparent');
-        bgX.fillStyle = g; bgX.fillRect(0, 0, W, H);
+      const ng2 = bgX.createRadialGradient(W * 0.2, H * 0.38, 0, W * 0.2, H * 0.38, W * 0.46);
+      ng2.addColorStop(0, `rgba(${ar},${ag},${ab},${(0.05 + bs * 0.08) * k})`);
+      ng2.addColorStop(1, 'transparent');
+      bgX.fillStyle = ng2; bgX.fillRect(0, 0, W, H);
+
+      const ng3 = bgX.createRadialGradient(W * 0.82, H * 0.35, 0, W * 0.82, H * 0.35, W * 0.38);
+      ng3.addColorStop(0, `rgba(${ar},${ag},${ab},${(0.04 + bs * 0.06) * k})`);
+      ng3.addColorStop(1, 'transparent');
+      bgX.fillStyle = ng3; bgX.fillRect(0, 0, W, H);
+
+      clickRipples.forEach((r) => {
+        const g2 = bgX.createRadialGradient(r.x * W, r.y * H, 0, r.x * W, r.y * H, W * 0.2 * r.strength);
+        g2.addColorStop(0, `rgba(${ar},${ag},${ab},${r.strength * 0.06 * Math.exp(-r.t * 1.2) * k})`);
+        g2.addColorStop(1, 'transparent');
+        bgX.fillStyle = g2; bgX.fillRect(0, 0, W, H);
       });
 
-      // ── Sheet music staves ──
-      const staveY = [H * 0.2, H * 0.38, H * 0.56, H * 0.74];
-      const stavePeriod = 8;
-      const activeStave = Math.floor(((ts * 0.001) / stavePeriod) % 4);
-      const notePlayPos = (((ts * 0.001) / stavePeriod) % 1) * NOTES_PER_STAVE;
-
-      for (let s = 0; s < 4; s++) {
-        const baseY = staveY[s], scrollX = (ts * 0.021 * (1 + s * 0.42)) % W;
-
-        // Staff lines — fade at edges
-        for (let line = 0; line < 5; line++) {
-          const ly = baseY + line * 9;
-          const lg = bgX.createLinearGradient(0, 0, W, 0);
-          lg.addColorStop(0, 'transparent');
-          lg.addColorStop(0.04, `rgba(${lineColor},${0.12 + bs * 0.05})`);
-          lg.addColorStop(0.96, `rgba(${lineColor},${0.12 + bs * 0.05})`);
-          lg.addColorStop(1, 'transparent');
-          bgX.strokeStyle = lg; bgX.lineWidth = 0.7;
-          bgX.beginPath(); bgX.moveTo(0, ly); bgX.lineTo(W, ly); bgX.stroke();
+      // ── Soft nebula bands ──
+      const bands: [number, number, number, number][] = [
+        [0.74, 52, 0.52, 0.000038], [0.66, 40, 0.7, 0.000055], [0.59, 32, 0.92, 0.000072],
+        [0.52, 25, 1.18, 0.000092], [0.46, 19, 1.52, 0.000115], [0.41, 13, 1.98, 0.000145],
+      ];
+      bands.forEach(([yc, a, fm, sp], i) => {
+        const amp = a * (0.58 + 0.42 * bs);
+        const ph = ts * sp;
+        bgX.beginPath();
+        for (let x = 0; x <= W; x += 4) {
+          const nx = x / W;
+          let y = H * yc
+            + Math.sin(nx * Math.PI * 2 * fm + ph * 7) * amp
+            + Math.sin(nx * Math.PI * 3 * fm * 0.73 + ph * 5.2 + i) * amp * 0.4
+            + (rmx - 0.5) * amp * 0.5 * Math.sin(nx * Math.PI * 2 + 0.5)
+            + dragEnergy * amp * 0.3 * Math.sin(nx * Math.PI * 3 + ts * 0.003 + (rmx - 0.5) * 4);
+          for (const r of clickRipples) {
+            const dx = nx - r.x, age = r.t, wf = age * 0.6, spr = 0.12 + age * 0.2;
+            y += r.strength * amp * 0.22 * Math.exp(-((Math.abs(dx) - wf) ** 2) / (spr ** 2)) * Math.exp(-age * 0.9) * Math.sin((Math.abs(dx) - wf) * 18);
+          }
+          x === 0 ? bgX.moveTo(0, y) : bgX.lineTo(x, y);
         }
+        bgX.lineTo(W, H); bgX.lineTo(0, H); bgX.closePath();
+        bgX.fillStyle = `rgba(${ar},${ag},${ab},${(0.045 + i * 0.008 + bs * 0.045) * k})`;
+        bgX.fill();
+      });
 
-        // Treble clef
-        bgX.font = `${34 + s * 2}px serif`;
-        bgX.fillStyle = `rgba(${clefColor},${0.18 + bs * 0.08})`;
-        bgX.fillText('𝄞', Math.max(18, 40 - scrollX * 0.03), baseY + 26);
-
-        // Bar lines
-        for (let b = 0; b < 6; b++) {
-          const bx = (b * (W / 5.5) + W - scrollX) % W;
-          if (bx > 58 && bx < W - 10) {
-            bgX.beginPath(); bgX.moveTo(bx, baseY - 2); bgX.lineTo(bx, baseY + 38);
-            bgX.strokeStyle = `rgba(${barColor},${0.10 + bs * 0.04})`; bgX.lineWidth = 1.1; bgX.stroke();
-          }
+      // ── Starfield ──
+      const starCount = dark ? stars.length : Math.round(stars.length * 0.45);
+      for (let i = 0; i < starCount; i++) {
+        const s = stars[i];
+        const sx = s.x * W + mvx * s.r * 0.8;
+        const sy = s.y * H + mvy * s.r * 0.5;
+        const tw = 0.35 + 0.65 * Math.abs(Math.sin(ts * 0.0014 + s.phase));
+        bgX.beginPath();
+        bgX.arc(sx, sy, s.r, 0, Math.PI * 2);
+        bgX.fillStyle = `rgba(${ar},${ag},${ab},${(0.08 + bs * 0.12) * tw * k})`;
+        bgX.fill();
+        if (tw > 0.85 && s.r > 0.7) {
+          const sg = bgX.createRadialGradient(sx, sy, 0, sx, sy, 5);
+          sg.addColorStop(0, `rgba(${ar},${ag},${ab},${0.12 * tw * k})`);
+          sg.addColorStop(1, 'transparent');
+          bgX.fillStyle = sg;
+          bgX.beginPath(); bgX.arc(sx, sy, 5, 0, Math.PI * 2); bgX.fill();
         }
-
-        // Notes
-        NOTE_DATA[s].forEach((nd, ni) => {
-          const nx = (ni * (W / NOTES_PER_STAVE) + W - scrollX * 1.85) % W;
-          if (nx < 58 || nx > W - 10) return;
-          const ny = baseY + nd.pos * 4.5 + 18;
-          const isNear = s === activeStave && Math.abs(ni - notePlayPos) < 1.2;
-          const na = isNear ? 0.22 + bs * 0.18 : 0.12 + bs * 0.1;
-          const col = isNear ? `rgba(${activeNote},${na + 0.08})` : `rgba(${noteColor},${na})`;
-          if (nd.rest) {
-            bgX.strokeStyle = `rgba(${noteColor},${na * 0.8})`; bgX.lineWidth = 1.4;
-            bgX.beginPath(); bgX.moveTo(nx - 6, ny - 6); bgX.lineTo(nx + 6, ny - 6); bgX.stroke(); return;
-          }
-          const vib = Math.sin(ts * 0.003 + ni * 1.2) * bs * 2.5 + (rmx - 0.5) * bs * 3 + mvx * 0.4 * Math.sin(ni * 0.3);
-          bgX.beginPath(); bgX.ellipse(nx + vib, ny, 5.5, 4.2, -0.2, 0, Math.PI * 2);
-          bgX.fillStyle = col; bgX.fill();
-          const sd = nd.pos < 0 ? 1 : -1;
-          bgX.beginPath(); bgX.moveTo(nx + vib + 4.5, ny); bgX.lineTo(nx + vib + 4.5, ny - 28 * sd);
-          bgX.strokeStyle = col; bgX.lineWidth = 1.1; bgX.stroke();
-          if (nd.type === 2) {
-            bgX.beginPath();
-            bgX.moveTo(nx + vib + 4.5, ny - 28 * sd);
-            bgX.quadraticCurveTo(nx + vib + 22, ny - 20 * sd, nx + vib + 18, ny - 10 * sd);
-            bgX.strokeStyle = `rgba(${noteColor},${na * 0.7})`; bgX.lineWidth = 1; bgX.stroke();
-          }
-          if (nd.pos > 4 || nd.pos < -4) {
-            bgX.beginPath(); bgX.moveTo(nx - 7, ny); bgX.lineTo(nx + 12, ny);
-            bgX.strokeStyle = `rgba(${noteColor},${na * 0.65})`; bgX.lineWidth = 0.75; bgX.stroke();
-          }
-        });
       }
 
-      // ── Ink waves (mouse-reactive) ──
+      // ── Flowing mouse-reactive lines ──
       const mxB = rmx - 0.5, myB = rmy - 0.5;
-      ([[0.72, 22, 0.62, 0.000038, 0.13, 1.8], [0.65, 17, 0.98, 0.00005, 0.10, 1.4],
-        [0.79, 15, 0.43, 0.000027, 0.09, 2.0], [0.59, 11, 1.52, 0.000063, 0.07, 1.0]] as number[][])
-        .forEach(([yc, a, fm, sp, op, w], i) => {
-          const yB = H * yc + myB * H * 0.1 * (1 - i * 0.1);
-          const boost = 1 + Math.abs(mxB) * 2.2 + dragEnergy * 1.5 + Math.abs(myB) * 0.9;
-          const amp = a * (0.48 + 0.52 * bs) * boost;
-          const fmM = fm * (1 + mxB * 0.5 + mvx * 0.045);
-          const ph = ts * sp;
-          fxX.beginPath();
-          for (let x = 0; x <= W; x += 4) {
-            const nx = x / W;
-            let y = yB + Math.sin(nx * Math.PI * 2 * fmM + ph * 5 + mxB * nx * 4.5) * amp
-              + mxB * amp * 0.55 * Math.sin(nx * Math.PI * 2.5 + i)
-              + Math.sin(nx * Math.PI * 3 * fmM * 0.7 + ph * 3.5 + i) * amp * 0.42
-              + mvx * amp * 0.09 * Math.sin(nx * Math.PI * 2.2)
-              + mvy * amp * 0.06 * Math.cos(nx * Math.PI * 1.8 + i);
-            for (const r of clickRipples) {
-              const dx = nx - r.x, age = r.t, wf = age * 0.5, sp2 = 0.1 + age * 0.15;
-              y += r.strength * amp * 0.24 * Math.exp(-((Math.abs(dx) - wf) ** 2) / (sp2 ** 2)) * Math.exp(-age) * Math.sin((Math.abs(dx) - wf) * 18);
-            }
-            x === 0 ? fxX.moveTo(0, y) : fxX.lineTo(x, y);
-          }
-          const prox = Math.exp(-Math.abs(rmy - yc) * 3.5) * 0.4;
-          fxX.strokeStyle = `rgba(${waveInk},${(op + prox) * (0.38 + 0.62 * bs)})`;
-          fxX.lineWidth = w * (1 + prox * 1.6); fxX.stroke();
-        });
-
-      // ── Main accent wave (red in light / blue in dark) ──
-      const scrollSync = notePlayPos / NOTES_PER_STAVE;
-      S.wavePhase += 0.0008;
-      ([[0.5, 0.038, 1.6, 3.0, 0.48 + bs * 0.28], [0.5, 0.062, 1.6, 9.0, 0.12 + bs * 0.16], [0.5, 0.028, 3.2, 1.5, 0.32 + bs * 0.22]] as number[][])
-        .forEach(([yFrac, ampFrac, freq, lineW, alpha], li) => {
-          const wY = H * (yFrac + (rmy - 0.5) * 0.22);
-          const wAmp = H * ampFrac * (0.5 + bs * 0.7) * (1 + Math.abs(rmx - 0.5) * 1.8 + dragEnergy * 1.2 + Math.abs(rmy - 0.5) * 0.6);
-          const freqM = freq * (1 + (rmx - 0.5) * 0.5 + mvx * 0.04);
-          const ph = S.wavePhase * 5.5 + scrollSync * Math.PI * 4 + (rmx - 0.5) * 2.5;
-          tpX.beginPath();
-          for (let x = 0; x <= W; x += 3) {
-            const nx = x / W;
-            let y = wY + Math.sin(nx * Math.PI * 2 * freqM + ph) * wAmp
-              + Math.sin(nx * Math.PI * 3.5 * freqM + ph * 0.72) * wAmp * 0.4
-              + Math.sin(nx * Math.PI * 1.1 + ph * 0.4) * wAmp * 0.24
-              + (rmx - 0.5) * wAmp * 1.0 * Math.sin(nx * Math.PI * 2 + li)
-              + mvx * wAmp * 0.1 * Math.sin(nx * Math.PI * 3.5)
-              + mvy * wAmp * 0.06 * Math.cos(nx * Math.PI * 2.2 + li);
-            if (dragEnergy > 0.1) y += dragEnergy * wAmp * 0.6 * Math.sin(nx * Math.PI * 5.5 + ph * 1.3);
-            for (const r of clickRipples) {
-              const dx = nx - r.x, age = r.t, wf = age * 0.5, sp2 = 0.09 + age * 0.13;
-              y += r.strength * wAmp * 0.45 * Math.exp(-((Math.abs(dx) - wf) ** 2) / (sp2 ** 2)) * Math.exp(-age * 0.8) * Math.sin((Math.abs(dx) - wf) * 22);
-            }
-            x === 0 ? tpX.moveTo(0, y) : tpX.lineTo(x, y);
-          }
-          const grad = tpX.createLinearGradient(0, wY - wAmp * 1.5, 0, wY + wAmp * 1.5);
-          grad.addColorStop(0, `rgba(${accentA},${alpha * 0.4})`);
-          grad.addColorStop(0.4, `rgba(${accentB},${alpha})`);
-          grad.addColorStop(0.6, `rgba(${accentC},${alpha})`);
-          grad.addColorStop(1, `rgba(${accentD},${alpha * 0.3})`);
-          tpX.strokeStyle = grad; tpX.lineWidth = lineW * (1 + dragEnergy * 0.4); tpX.stroke();
-        });
-
-      // ── Subtle accent ink lines ──
-      const rph = ts * 0.000027;
-      for (let r = 0; r < 3; r++) {
-        const yoff = H * (0.5 + r * 0.042);
+      const lines: [number, number, number, number, number, number][] = [
+        [0.52, 0.033, 1.8, 0.000029, 0.16, 0.6], [0.43, 0.02, 2.9, 0.000043, 0.11, 0.4],
+        [0.62, 0.027, 1.3, 0.000024, 0.13, 0.5], [0.47, 0.017, 3.5, 0.000052, 0.09, 0.4],
+        [0.57, 0.038, 0.88, 0.000021, 0.15, 0.7],
+      ];
+      lines.forEach(([yc, a, fm, sp, op, w], li) => {
+        const yB = H * yc + myB * H * 0.16 * (1 - li * 0.08);
+        const ampBoost = 1 + Math.abs(mxB) * 2.0 + dragEnergy * 1.3 + Math.abs(myB) * 0.7;
+        const amp = H * a * (0.48 + 0.52 * bs) * ampBoost;
+        const fmMod = fm * (1 + mxB * 0.55 + mvx * 0.035);
+        const ph = ts * sp;
         fxX.beginPath();
         for (let x = 0; x <= W; x += 3) {
           const nx = x / W;
-          const y = yoff + Math.sin(nx * Math.PI * 2 * 0.6 + rph * (4.5 + r)) * (18 + bs * 13) * (0.3 + r * 0.2)
-            + Math.sin(nx * Math.PI * 1.4 + rph * (3 + r)) * 8
-            + (rmx - 0.5) * 12 * Math.sin(nx * Math.PI * 1.2) + mvx * 5 * Math.sin(nx * Math.PI * 2);
+          let y = yB
+            + Math.sin(nx * Math.PI * 2 * fmMod + ph * 5 + mxB * nx * 3.5) * amp
+            + Math.sin(nx * Math.PI * 3 * fmMod * 0.7 + ph * 3) * amp * 0.38
+            + mxB * amp * 0.6 * Math.sin(nx * Math.PI * 1.8 + li)
+            + mvx * amp * 0.05 * Math.sin(nx * Math.PI * 2 + ph)
+            + mvy * amp * 0.04 * Math.cos(nx * Math.PI * 1.5 + li);
+          for (const r of clickRipples) {
+            const dx = nx - r.x, age = r.t, wf = age * 0.55, sp2 = 0.1 + age * 0.15;
+            y += r.strength * amp * 0.25 * Math.exp(-((Math.abs(dx) - wf) ** 2) / (sp2 ** 2)) * Math.exp(-age) * Math.sin((Math.abs(dx) - wf) * 18);
+          }
           x === 0 ? fxX.moveTo(0, y) : fxX.lineTo(x, y);
         }
-        fxX.strokeStyle = `rgba(${waveAccent},${(0.09 + bs * 0.15) * (1 - r * 0.25)})`;
-        fxX.lineWidth = 1.6 - r * 0.3; fxX.stroke();
-      }
+        const proximityBoost = Math.exp(-Math.abs(rmy - yc) * 3.5) * 0.5;
+        fxX.strokeStyle = `rgba(${ar},${ag},${ab},${(op + proximityBoost) * (0.42 + 0.58 * bs) * k})`;
+        fxX.lineWidth = w * (1 + proximityBoost * 1.8);
+        fxX.stroke();
+      });
 
-      // ── Mouse-reactive overlay wave ──
+      // ── Top overlay wave ──
       const yBase = H * (0.3 + rmy * 0.4);
       const wAmp2 = H * (0.03 + bs * 0.05) * (1 + rmx * 0.8 + Math.abs(rmy - 0.5) * 0.6) * (1 + dragEnergy * 0.8);
       for (let layer = 0; layer < 4; layer++) {
@@ -481,7 +410,8 @@ function ClassicalBackground({ isDark }: { isDark: boolean }) {
         tpX.beginPath();
         for (let x = 0; x <= W; x += 3) {
           const nx = x / W;
-          let y = yBase + Math.sin(nx * Math.PI * 2 * (1 + rmx * 0.8) + ts * 0.000315 + phOff) * wAmp2
+          let y = yBase
+            + Math.sin(nx * Math.PI * 2 * (1 + rmx * 0.8) + ts * 0.000315 + phOff) * wAmp2
             + Math.sin(nx * Math.PI * 3.7 + ts * 0.000196 + phOff) * wAmp2 * 0.38
             + (rmx - 0.5) * H * 0.06 * Math.sin(nx * Math.PI + layer)
             + mvx * wAmp2 * 0.08 * Math.sin(nx * Math.PI * 3 + phOff)
@@ -492,8 +422,9 @@ function ClassicalBackground({ isDark }: { isDark: boolean }) {
           }
           x === 0 ? tpX.moveTo(0, y) : tpX.lineTo(x, y);
         }
-        tpX.strokeStyle = `rgba(${waveAccent},${(0.10 - 0.01 * layer) * (0.45 + bs * 0.65 + clickImpulse * 0.35)})`;
-        tpX.lineWidth = 1.3 - layer * 0.25; tpX.stroke();
+        tpX.strokeStyle = `rgba(${ar},${ag},${ab},${(0.09 - 0.01 * layer) * (0.45 + bs * 0.65 + clickImpulse * 0.35) * k})`;
+        tpX.lineWidth = 1.3 - layer * 0.25;
+        tpX.stroke();
       }
 
       S.rafId = requestAnimationFrame(draw);
@@ -520,16 +451,15 @@ function ClassicalBackground({ isDark }: { isDark: boolean }) {
       <canvas ref={bgRef} style={{ ...base, zIndex: 1 }} />
       <canvas ref={fxRef} style={{ ...base, zIndex: 2 }} />
       <canvas ref={tpRef} style={{ ...base, zIndex: 3, pointerEvents: 'none' }} />
-      {/* Film grain */}
       <div style={{
         position: 'absolute', inset: '-200%', width: '400%', height: '400%',
         zIndex: 4, pointerEvents: 'none',
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        opacity: 0.025,
-        animation: 'classicalGrain 0.1s steps(1) infinite',
+        opacity: 0.02,
+        animation: 'meditativeGrain 0.1s steps(1) infinite',
       }} />
       <style>{`
-        @keyframes classicalGrain {
+        @keyframes meditativeGrain {
           0%{transform:translate(0,0)}10%{transform:translate(-4%,-3%)}
           20%{transform:translate(3%,5%)}30%{transform:translate(-2%,4%)}
           40%{transform:translate(6%,-2%)}50%{transform:translate(-3%,2%)}
@@ -671,7 +601,7 @@ export function HeroSection() {
     <section className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 overflow-hidden">
 
       {/* Classical animated background — transparent, theme-aware colors */}
-      <ClassicalBackground isDark={isDark} />
+      <MeditativeBackground isDark={isDark} />
 
       {/* Music player — fixed floating control, bottom-right */}
       <MusicPlayer />

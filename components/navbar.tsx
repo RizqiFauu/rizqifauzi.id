@@ -42,15 +42,33 @@ export function Navbar() {
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false);
   const [mobilePortfolioOpen, setMobilePortfolioOpen] = useState(false);
 
   useEffect(() => {
+    let lastScrollY = window.scrollY;
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      const currentScrollY = window.scrollY;
+
+      setIsScrolled(currentScrollY > 10);
+
+      if (currentScrollY < 80) {
+        // masih deket atas, jangan disembunyiin
+        setIsHidden(false);
+      } else if (currentScrollY > lastScrollY) {
+        // scroll ke bawah -> sembunyikan navbar
+        setIsHidden(true);
+      } else {
+        // scroll ke atas -> munculin lagi
+        setIsHidden(false);
+      }
+
+      lastScrollY = currentScrollY;
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -67,8 +85,8 @@ export function Navbar() {
           : 'bg-transparent'
       }`}
       initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
+      animate={{ y: isHidden && !isOpen ? '-100%' : 0 }}
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
